@@ -4,9 +4,8 @@ import (
 	"strings"
 )
 
-func newNode(route string, parent *node) *node {
+func newNode(parent *node) *node {
 	return &node{
-		route:    route,
 		parent:   parent,
 		children: make(map[string]*node),
 		handlers: make(map[string]HandlerFunc),
@@ -20,9 +19,17 @@ type node struct {
 	handlers map[string]HandlerFunc
 }
 
-func (n *node) generateFromRoutes(routes []Route, middleware MiddlewareFunc) {
+func (n *node) generateFromRoutes(routes []Route, prefix string, middleware MiddlewareFunc) {
 	for _, r := range routes {
 		cn := n.generateFromPath(r.Path)
+		route := ""
+		if prefix != "" && r.Path != "" {
+			route = prefix + r.Path
+		} else if prefix != "" {
+			route = prefix
+		} else if r.Path != "" {
+			route = r.Path
+		}
 
 		var m MiddlewareFunc
 		if middleware != nil && r.Middleware != nil {
@@ -36,13 +43,14 @@ func (n *node) generateFromRoutes(routes []Route, middleware MiddlewareFunc) {
 		}
 
 		if len(r.Children) > 0 {
-			cn.generateFromRoutes(r.Children, m)
+			cn.generateFromRoutes(r.Children, route, m)
 		} else {
 			if m != nil {
 				cn.handlers[r.Method] = m(r.Handler)
 			} else {
 				cn.handlers[r.Method] = r.Handler
 			}
+			cn.route = route
 		}
 	}
 }
@@ -69,7 +77,7 @@ func (n *node) findOrCreateNode(path string) *node {
 		k = "#"
 	}
 	if n.children[k] == nil {
-		n.children[k] = newNode(n.route+"/"+path, n)
+		n.children[k] = newNode(n)
 	}
 	return n.children[k]
 }

@@ -6,8 +6,8 @@ import (
 )
 
 func New(routes []Route) Router {
-	tree := newNode("", nil)
-	tree.generateFromRoutes(routes, nil)
+	tree := newNode(nil)
+	tree.generateFromRoutes(routes, "", nil)
 	return Router{tree}
 }
 
@@ -19,7 +19,7 @@ func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.EscapedPath()
 	n := router.tree.findNode(path)
 
-	if n == nil {
+	if n == nil || len(n.handlers) == 0 {
 		http.NotFound(w, r)
 		return
 	}

@@ -68,6 +68,30 @@ var tRoutes = []Route{
 			},
 		},
 	},
+	{
+		Path: "/:foo",
+		Children: []Route{
+			{
+				Path:   "/foo",
+				Method: http.MethodGet,
+				Handler: func(w http.ResponseWriter, r *http.Request) {
+					w.Write([]byte(r.Context().Value("route").(string)))
+				},
+			},
+		},
+	},
+	{
+		Path: "/:bar",
+		Children: []Route{
+			{
+				Path:   "/bar",
+				Method: http.MethodGet,
+				Handler: func(w http.ResponseWriter, r *http.Request) {
+					w.Write([]byte(r.Context().Value("route").(string)))
+				},
+			},
+		},
+	},
 }
 
 var tRouter = New(tRoutes)
@@ -127,6 +151,18 @@ func TestNestedDynamicRoute(t *testing.T) {
 	testRoute(t, RouteTest{
 		httptest.NewRequest(http.MethodGet, "/posts/1/comments/2", nil),
 		ExpectedResponse{"/posts/:postId/comments/:commentId", 200},
+	})
+}
+
+func TestRoutePath(t *testing.T) {
+	testRoute(t, RouteTest{
+		httptest.NewRequest(http.MethodGet, "/foo/foo", nil),
+		ExpectedResponse{"/:foo/foo", 200},
+	})
+
+	testRoute(t, RouteTest{
+		httptest.NewRequest(http.MethodGet, "/bar/bar", nil),
+		ExpectedResponse{"/:bar/bar", 200},
 	})
 }
 
