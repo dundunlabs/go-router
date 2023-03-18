@@ -1,7 +1,6 @@
 package gorouter
 
 import (
-	"context"
 	"net/http"
 )
 
@@ -31,5 +30,9 @@ func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	handle(w, r.WithContext(context.WithValue(r.Context(), "route", n.route)))
+	req := Request{
+		Request: r,
+		node:    n,
+	}
+	handle(w, req)
 }
