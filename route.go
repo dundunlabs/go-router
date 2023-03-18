@@ -2,11 +2,13 @@ package gorouter
 
 import "net/http"
 
-type Handler func(http.ResponseWriter, *http.Request)
+type HandlerFunc func(http.ResponseWriter, *http.Request)
+type MiddlewareFunc func(next HandlerFunc) HandlerFunc
 
 type Route struct {
-	Path     string
-	Method   string
-	Handler  Handler
-	Children []Route
+	Path       string
+	Method     string
+	Handler    HandlerFunc
+	Middleware MiddlewareFunc
+	Children   []Route
 }

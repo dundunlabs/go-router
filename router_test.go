@@ -18,10 +18,22 @@ var tRoutes = []Route{
 	},
 	{
 		Path: "/api",
+		Middleware: func(next HandlerFunc) HandlerFunc {
+			return func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				next(w, r)
+			}
+		},
 		Children: []Route{
 			{
 				Path:   "/hello",
 				Method: http.MethodPost,
+				Middleware: func(next HandlerFunc) HandlerFunc {
+					return func(w http.ResponseWriter, r *http.Request) {
+						w.Header().Set("X-Test", "test")
+						next(w, r)
+					}
+				},
 				Handler: func(w http.ResponseWriter, r *http.Request) {
 					var body map[string]any
 					json.NewDecoder(r.Body).Decode(&body)
@@ -70,7 +82,7 @@ type RouteTest struct {
 	res ExpectedResponse
 }
 
-func testRoute(t *testing.T, rt RouteTest) {
+func testRoute(t *testing.T, rt RouteTest) http.ResponseWriter {
 	w := httptest.NewRecorder()
 	tRouter.ServeHTTP(w, rt.req)
 
@@ -81,6 +93,8 @@ func testRoute(t *testing.T, rt RouteTest) {
 	if text, want := w.Body.String(), rt.res.body; text != want {
 		t.Errorf("got %s, wanted %s", text, want)
 	}
+
+	return w
 }
 
 func TestRoute(t *testing.T) {
@@ -128,4 +142,31 @@ func TestNotFound(t *testing.T) {
 		httptest.NewRequest(http.MethodGet, "/hello", nil),
 		ExpectedResponse{"404 page not found\n", 404},
 	})
+}
+
+func TestMiddleware(t *testing.T) {
+	w := testRoute(t, RouteTest{
+		httptest.NewRequest(http.MethodPost, "/api/hello", bytes.NewBufferString("{\"name\": \"John Doe\"}")),
+		ExpectedResponse{"John Doe", 200},
+	})
+
+	ctWant := "application/json"
+	if ct := w.Header().Get("Content-Type"); ct != ctWant {
+		t.Errorf("Expected content-type: %s, got: %s", ctWant, ct)
+	}
+}
+
+func TestNestedMiddleware(t *testing.T) {
+	w := testRoute(t, RouteTest{
+		httptest.NewRequest(http.MethodPost, "/api/hello", bytes.NewBufferString("{\"name\": \"John Doe\"}")),
+		ExpectedResponse{"John Doe", 200},
+	})
+
+	if result, want := w.Header().Get("Content-Type"), "application/json"; result != want {
+		t.Errorf("Expected content-type: %s, got: %s", want, result)
+	}
+
+	if result, want := w.Header().Get("X-Test"), "test"; result != want {
+		t.Errorf("Expected 'X-Test' header: %s, got: %s", want, result)
+	}
 }

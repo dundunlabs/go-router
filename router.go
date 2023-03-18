@@ -7,7 +7,7 @@ import (
 
 func New(routes []Route) Router {
 	tree := newNode("", nil)
-	tree.generateFromRoutes(routes)
+	tree.generateFromRoutes(routes, nil)
 	return Router{tree}
 }
 
