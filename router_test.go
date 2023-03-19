@@ -41,6 +41,13 @@ var tRoutes = []Route{
 					w.Write([]byte(body["name"].(string)))
 				},
 			},
+			{
+				Path:   "/*",
+				Method: http.MethodGet,
+				Handler: func(w http.ResponseWriter, r Request) {
+					w.Write([]byte(r.Route()))
+				},
+			},
 		},
 	},
 	{
@@ -168,6 +175,26 @@ func TestNestedDynamicRoute(t *testing.T) {
 		httptest.NewRequest(http.MethodGet, "/posts/1/comments/2", nil),
 		ExpectedResponse{"/posts/:postId/comments/:commentId", 200, nil},
 	})
+}
+
+func TestWildcardRoute(t *testing.T) {
+	tests := []struct {
+		path string
+		want string
+	}{
+		{"/api/test", "/api/*"},
+		{"/api/test/test", "/api/*"},
+		{"/api/hello/world", "/api/*"},
+	}
+
+	for _, test := range tests {
+		t.Run("Path="+test.path, func(t *testing.T) {
+			testRoute(t, RouteTest{
+				httptest.NewRequest(http.MethodGet, test.path, nil),
+				ExpectedResponse{test.want, 200, nil},
+			})
+		})
+	}
 }
 
 func TestRoutePath(t *testing.T) {

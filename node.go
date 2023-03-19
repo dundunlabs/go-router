@@ -4,6 +4,8 @@ import (
 	"strings"
 )
 
+const paramKey = "?"
+
 func newNode(parent *node) *node {
 	return &node{
 		parent:   parent,
@@ -15,6 +17,7 @@ func newNode(parent *node) *node {
 type node struct {
 	route    string
 	parent   *node
+	wildcard bool
 	children map[string]*node
 	handlers map[string]HandlerFunc
 }
@@ -66,6 +69,9 @@ func (n *node) generateFromPath(path string) *node {
 func (n *node) generateNode(path string) *node {
 	if path == "" {
 		return n
+	} else if path == "*" {
+		n.wildcard = true
+		return n
 	} else {
 		return n.findOrCreateNode(path)
 	}
@@ -74,7 +80,7 @@ func (n *node) generateNode(path string) *node {
 func (n *node) findOrCreateNode(path string) *node {
 	k := path
 	if path[0] == ':' {
-		k = "#"
+		k = paramKey
 	}
 	if n.children[k] == nil {
 		n.children[k] = newNode(n)
@@ -83,14 +89,25 @@ func (n *node) findOrCreateNode(path string) *node {
 }
 
 func (n *node) findNode(path string) *node {
+	var node *node
+
 	if i := strings.IndexByte(path, '/'); i > -1 {
 		cn := n.findPart(path[:i])
 		if cn != nil {
-			return cn.findNode(path[i+1:])
+			node = cn.findNode(path[i+1:])
+		} else {
+			node = nil
 		}
-		return nil
 	} else {
-		return n.findPart(path)
+		node = n.findPart(path)
+	}
+
+	if node == nil {
+		return n.findWildcardNode()
+	} else if len(node.handlers) == 0 {
+		return node.findWildcardNode()
+	} else {
+		return node
 	}
 }
 
@@ -99,9 +116,19 @@ func (n *node) findPart(part string) *node {
 		return n
 	} else if cn, ok := n.children[part]; ok {
 		return cn
-	} else if cn, ok := n.children["#"]; ok {
+	} else if cn, ok := n.children[paramKey]; ok {
 		return cn
 	} else {
 		return nil
 	}
+}
+
+func (n *node) findWildcardNode() *node {
+	if n.wildcard {
+		return n
+	}
+	if n.parent == nil {
+		return nil
+	}
+	return n.parent.findWildcardNode()
 }

@@ -18,7 +18,7 @@ func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.EscapedPath()
 	n := router.tree.findNode(path)
 
-	if n == nil || len(n.handlers) == 0 {
+	if n == nil {
 		http.NotFound(w, r)
 		return
 	}
