@@ -13,14 +13,14 @@ var tRoutes = []Route{
 	{
 		Path:   "/ping",
 		Method: http.MethodGet,
-		Handler: func(w http.ResponseWriter, r Request) {
+		Handler: func(w *Response, r *Request) {
 			w.Write([]byte("pong"))
 		},
 	},
 	{
 		Path: "/api",
 		Middleware: func(next HandlerFunc) HandlerFunc {
-			return func(w http.ResponseWriter, r Request) {
+			return func(w *Response, r *Request) {
 				w.Header().Set("Content-Type", "application/json")
 				next(w, r)
 			}
@@ -30,12 +30,12 @@ var tRoutes = []Route{
 				Path:   "/hello",
 				Method: http.MethodPost,
 				Middleware: func(next HandlerFunc) HandlerFunc {
-					return func(w http.ResponseWriter, r Request) {
+					return func(w *Response, r *Request) {
 						w.Header().Set("X-Test", "test")
 						next(w, r)
 					}
 				},
-				Handler: func(w http.ResponseWriter, r Request) {
+				Handler: func(w *Response, r *Request) {
 					var body map[string]any
 					json.NewDecoder(r.Body).Decode(&body)
 					w.Write([]byte(body["name"].(string)))
@@ -44,7 +44,7 @@ var tRoutes = []Route{
 			{
 				Path:   "/*",
 				Method: http.MethodGet,
-				Handler: func(w http.ResponseWriter, r Request) {
+				Handler: func(w *Response, r *Request) {
 					w.Write([]byte(r.Route()))
 				},
 			},
@@ -53,7 +53,7 @@ var tRoutes = []Route{
 	{
 		Path:   "/users/:userId",
 		Method: http.MethodGet,
-		Handler: func(w http.ResponseWriter, r Request) {
+		Handler: func(w *Response, r *Request) {
 			w.Header().Set("X-Params", fmt.Sprintf("%s", r.Params()))
 			w.Write([]byte(r.Route()))
 		},
@@ -61,7 +61,7 @@ var tRoutes = []Route{
 	{
 		Path:   "/users/:userId/blogs/:blogId",
 		Method: http.MethodGet,
-		Handler: func(w http.ResponseWriter, r Request) {
+		Handler: func(w *Response, r *Request) {
 			w.Header().Set("X-Params", fmt.Sprintf("%s", r.Params()))
 			w.Write([]byte(r.Route()))
 		},
@@ -72,7 +72,7 @@ var tRoutes = []Route{
 			{
 				Path:   "/comments/:commentId",
 				Method: http.MethodGet,
-				Handler: func(w http.ResponseWriter, r Request) {
+				Handler: func(w *Response, r *Request) {
 					w.Header().Set("X-Params", fmt.Sprintf("%s", r.Params()))
 					w.Write([]byte(r.Route()))
 				},
@@ -85,7 +85,7 @@ var tRoutes = []Route{
 			{
 				Path:   "/foo",
 				Method: http.MethodGet,
-				Handler: func(w http.ResponseWriter, r Request) {
+				Handler: func(w *Response, r *Request) {
 					w.Header().Set("X-Params", fmt.Sprintf("%s", r.Params()))
 					w.Write([]byte(r.Route()))
 				},
@@ -98,7 +98,7 @@ var tRoutes = []Route{
 			{
 				Path:   "/bar",
 				Method: http.MethodGet,
-				Handler: func(w http.ResponseWriter, r Request) {
+				Handler: func(w *Response, r *Request) {
 					w.Header().Set("X-Params", fmt.Sprintf("%s", r.Params()))
 					w.Write([]byte(r.Route()))
 				},
@@ -112,7 +112,7 @@ var tRouter = New(tRoutes)
 type ExpectedResponse struct {
 	body       string
 	statusCode int
-	expect     func(http.ResponseWriter)
+	expect     func(*Response)
 }
 
 type RouteTest struct {
@@ -133,7 +133,7 @@ func testRoute(t *testing.T, rt RouteTest) {
 	}
 
 	if expect := rt.res.expect; expect != nil {
-		expect(w)
+		expect(&Response{ResponseWriter: w})
 	}
 }
 
@@ -230,7 +230,7 @@ func TestRequestParams(t *testing.T) {
 		t.Run("Path="+test.path, func(t *testing.T) {
 			testRoute(t, RouteTest{
 				httptest.NewRequest(http.MethodGet, test.path, nil),
-				ExpectedResponse{test.body, 200, func(w http.ResponseWriter) {
+				ExpectedResponse{test.body, 200, func(w *Response) {
 					if result := w.Header().Get("X-Params"); result != test.params {
 						t.Errorf("Expected params: %s, got: %s", test.params, result)
 					}
@@ -257,7 +257,7 @@ func TestNotFound(t *testing.T) {
 func TestMiddleware(t *testing.T) {
 	testRoute(t, RouteTest{
 		httptest.NewRequest(http.MethodPost, "/api/hello", bytes.NewBufferString("{\"name\": \"John Doe\"}")),
-		ExpectedResponse{"John Doe", 200, func(w http.ResponseWriter) {
+		ExpectedResponse{"John Doe", 200, func(w *Response) {
 			if result, want := w.Header().Get("Content-Type"), "application/json"; result != want {
 				t.Errorf("Expected content-type: %s, got: %s", want, result)
 			}
@@ -268,7 +268,7 @@ func TestMiddleware(t *testing.T) {
 func TestNestedMiddleware(t *testing.T) {
 	testRoute(t, RouteTest{
 		httptest.NewRequest(http.MethodPost, "/api/hello", bytes.NewBufferString("{\"name\": \"John Doe\"}")),
-		ExpectedResponse{"John Doe", 200, func(w http.ResponseWriter) {
+		ExpectedResponse{"John Doe", 200, func(w *Response) {
 			if result, want := w.Header().Get("Content-Type"), "application/json"; result != want {
 				t.Errorf("Expected content-type: %s, got: %s", want, result)
 			}

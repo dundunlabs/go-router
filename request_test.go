@@ -7,13 +7,13 @@ import (
 	"testing"
 )
 
-func testRequest(req *http.Request, test func(Request)) {
+func testRequest(req *http.Request, test func(*Request)) {
 	router := New([]Route{
 		{
 
 			Path:   "/test/:a/:b/:c",
 			Method: http.MethodGet,
-			Handler: func(w http.ResponseWriter, r Request) {
+			Handler: func(w *Response, r *Request) {
 				test(r)
 			},
 		},
@@ -21,7 +21,7 @@ func testRequest(req *http.Request, test func(Request)) {
 
 			Path:   "/",
 			Method: http.MethodPost,
-			Handler: func(w http.ResponseWriter, r Request) {
+			Handler: func(w *Response, r *Request) {
 				test(r)
 			},
 		},
@@ -30,7 +30,7 @@ func testRequest(req *http.Request, test func(Request)) {
 }
 
 func TestParams(t *testing.T) {
-	testRequest(httptest.NewRequest(http.MethodGet, "/test/1/2/3", nil), func(r Request) {
+	testRequest(httptest.NewRequest(http.MethodGet, "/test/1/2/3", nil), func(r *Request) {
 		params := r.Params()
 		want := map[string]string{
 			"a": "1",
@@ -46,7 +46,7 @@ func TestParams(t *testing.T) {
 }
 
 func TestParam(t *testing.T) {
-	testRequest(httptest.NewRequest(http.MethodGet, "/test/1/2/3", nil), func(r Request) {
+	testRequest(httptest.NewRequest(http.MethodGet, "/test/1/2/3", nil), func(r *Request) {
 		want := map[string]string{
 			"a": "1",
 			"b": "2",
@@ -68,7 +68,7 @@ func TestBody(t *testing.T) {
 			"name": "Foo Bar",
 		},
 	}
-	testRequest(httptest.NewRequest(http.MethodPost, "/", body), func(r Request) {
+	testRequest(httptest.NewRequest(http.MethodPost, "/", body), func(r *Request) {
 		type Profile struct {
 			Name string `json:"name"`
 		}
