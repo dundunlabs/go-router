@@ -16,14 +16,14 @@ func testResponse(method string, target string, body io.Reader) *httptest.Respon
 			Path:   "/401",
 			Method: http.MethodGet,
 			Handler: func(r *Request, w *Response) {
-				w.Status(http.StatusUnauthorized).End()
+				w.Status(http.StatusUnauthorized)
 			},
 		},
 		{
 			Path:   "/string",
 			Method: http.MethodGet,
 			Handler: func(r *Request, w *Response) {
-				w.MustSendString("Hello World!")
+				w.SendString("Hello World!")
 			},
 		},
 		{
@@ -60,7 +60,7 @@ func TestSendJSON(t *testing.T) {
 	if want, got := "application/json", w.Header().Get("Content-Type"); want != got {
 		t.Errorf("got %s, wanted %s", got, want)
 	}
-	if want, got := "{\"foo\":\"bar\"}\n", w.Body.String(); want != got {
+	if want, got := "{\"foo\":\"bar\"}", w.Body.String(); want != got {
 		t.Errorf("got %s, wanted %s", got, want)
 	}
 }

@@ -3,6 +3,7 @@ package gorouter
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -103,6 +104,13 @@ var tRoutes = []Route{
 					w.Write([]byte(r.Route()))
 				},
 			},
+		},
+	},
+	{
+		Path:   "/error",
+		Method: http.MethodGet,
+		Handler: func(req *Request, res *Response) {
+			panic(errors.New("Error!"))
 		},
 	},
 }
@@ -251,6 +259,13 @@ func TestNotFound(t *testing.T) {
 	testRoute(t, RouteTest{
 		httptest.NewRequest(http.MethodGet, "/hello", nil),
 		ExpectedResponse{"404 page not found\n", 404, nil},
+	})
+}
+
+func TestInternalServerError(t *testing.T) {
+	testRoute(t, RouteTest{
+		httptest.NewRequest(http.MethodGet, "/error", nil),
+		ExpectedResponse{"Error!\n", 500, nil},
 	})
 }
 
