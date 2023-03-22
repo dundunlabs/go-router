@@ -27,10 +27,10 @@ var routes = []gorouter.Route{
 	{
 		Path: "/api",
 		Middleware: func(next gorouter.HandlerFunc) gorouter.HandlerFunc {
-			return func(w http.ResponseWriter, r gorouter.Request) {
+			return func(res *gorouter.Response, req *gorouter.Request) {
 				// before
 				// ...
-				next(w, r)
+				next(res, req)
 				// after
 				// ...
 			}
@@ -40,17 +40,17 @@ var routes = []gorouter.Route{
 			{
 				Path:   "/hello",
 				Method: http.MethodGet,
-				Handler: func(w http.ResponseWriter, r gorouter.Request) {
-					w.Write([]byte("hello world!"))
+				Handler: func(res *gorouter.Response, req *gorouter.Request) {
+					res.MustSendString("hello world!")
 				},
 			},
 			// dynamic route
 			{
 				Path:   "/:resource/:id",
 				Method: http.MethodGet,
-				Handler: func(w http.ResponseWriter, r gorouter.Request) {
-					params := r.Params()
-					json.NewEncoder(w).Encode(params)
+				Handler: func(res *gorouter.Response, req *gorouter.Request) {
+					params := req.Params()
+					res.MustSendJSON(params)
 				},
 			},
 		},
@@ -59,7 +59,7 @@ var routes = []gorouter.Route{
 	{
 		Path:   "/*",
 		Method: http.MethodGet,
-		Handler: func(w http.ResponseWriter, r gorouter.Request) {
+		Handler: func(res *gorouter.Response, req *gorouter.Request) {
 			// do something
 		},
 	},
