@@ -41,7 +41,7 @@ var routes = []gorouter.Route{
 				Path:   "/hello",
 				Method: http.MethodGet,
 				Handler: func(req *gorouter.Request, res *gorouter.Response) {
-					res.MustSendString("hello world!")
+					res.SendString("hello world!")
 				},
 			},
 			// dynamic route
@@ -70,5 +70,8 @@ func main() {
 	http.ListenAndServe(":8080", router)
 }
 ```
+## Example
+Checkout an [example](/example)
+
 ---
 Happy coding!
