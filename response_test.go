@@ -15,21 +15,21 @@ func testResponse(method string, target string, body io.Reader) *httptest.Respon
 
 			Path:   "/401",
 			Method: http.MethodGet,
-			Handler: func(w *Response, r *Request) {
+			Handler: func(r *Request, w *Response) {
 				w.Status(http.StatusUnauthorized).End()
 			},
 		},
 		{
 			Path:   "/string",
 			Method: http.MethodGet,
-			Handler: func(w *Response, r *Request) {
+			Handler: func(r *Request, w *Response) {
 				w.MustSendString("Hello World!")
 			},
 		},
 		{
 			Path:   "/json",
 			Method: http.MethodGet,
-			Handler: func(w *Response, r *Request) {
+			Handler: func(r *Request, w *Response) {
 				w.MustSendJSON(map[string]string{"foo": "bar"})
 			},
 		},

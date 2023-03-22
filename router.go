@@ -30,12 +30,12 @@ func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := &Response{
-		ResponseWriter: w,
-	}
 	req := &Request{
 		Request: r,
 		node:    n,
 	}
-	handle(res, req)
+	res := &Response{
+		ResponseWriter: w,
+	}
+	handle(req, res)
 }

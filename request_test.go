@@ -13,7 +13,7 @@ func testRequest(req *http.Request, test func(*Request)) {
 
 			Path:   "/test/:a/:b/:c",
 			Method: http.MethodGet,
-			Handler: func(w *Response, r *Request) {
+			Handler: func(r *Request, w *Response) {
 				test(r)
 			},
 		},
@@ -21,7 +21,7 @@ func testRequest(req *http.Request, test func(*Request)) {
 
 			Path:   "/",
 			Method: http.MethodPost,
-			Handler: func(w *Response, r *Request) {
+			Handler: func(r *Request, w *Response) {
 				test(r)
 			},
 		},

@@ -10,27 +10,27 @@ var bRoutes = []Route{
 	{
 		Path:    "/",
 		Method:  http.MethodGet,
-		Handler: func(w *Response, r *Request) {},
+		Handler: func(r *Request, w *Response) {},
 	},
 	{
 		Path:    "/ping",
 		Method:  http.MethodGet,
-		Handler: func(w *Response, r *Request) {},
+		Handler: func(r *Request, w *Response) {},
 	},
 	{
 		Path:    "/users/:id",
 		Method:  http.MethodGet,
-		Handler: func(w *Response, r *Request) {},
+		Handler: func(r *Request, w *Response) {},
 	},
 	{
 		Path:    "/:resource/:id",
 		Method:  http.MethodGet,
-		Handler: func(w *Response, r *Request) {},
+		Handler: func(r *Request, w *Response) {},
 	},
 	{
 		Path:    "/:a/:b/:c/:d/:e",
 		Method:  http.MethodGet,
-		Handler: func(w *Response, r *Request) {},
+		Handler: func(r *Request, w *Response) {},
 	},
 }
 

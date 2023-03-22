@@ -13,16 +13,16 @@ var tRoutes = []Route{
 	{
 		Path:   "/ping",
 		Method: http.MethodGet,
-		Handler: func(w *Response, r *Request) {
+		Handler: func(r *Request, w *Response) {
 			w.Write([]byte("pong"))
 		},
 	},
 	{
 		Path: "/api",
 		Middleware: func(next HandlerFunc) HandlerFunc {
-			return func(w *Response, r *Request) {
+			return func(r *Request, w *Response) {
 				w.Header().Set("Content-Type", "application/json")
-				next(w, r)
+				next(r, w)
 			}
 		},
 		Children: []Route{
@@ -30,12 +30,12 @@ var tRoutes = []Route{
 				Path:   "/hello",
 				Method: http.MethodPost,
 				Middleware: func(next HandlerFunc) HandlerFunc {
-					return func(w *Response, r *Request) {
+					return func(r *Request, w *Response) {
 						w.Header().Set("X-Test", "test")
-						next(w, r)
+						next(r, w)
 					}
 				},
-				Handler: func(w *Response, r *Request) {
+				Handler: func(r *Request, w *Response) {
 					var body map[string]any
 					json.NewDecoder(r.Body).Decode(&body)
 					w.Write([]byte(body["name"].(string)))
@@ -44,7 +44,7 @@ var tRoutes = []Route{
 			{
 				Path:   "/*",
 				Method: http.MethodGet,
-				Handler: func(w *Response, r *Request) {
+				Handler: func(r *Request, w *Response) {
 					w.Write([]byte(r.Route()))
 				},
 			},
@@ -53,7 +53,7 @@ var tRoutes = []Route{
 	{
 		Path:   "/users/:userId",
 		Method: http.MethodGet,
-		Handler: func(w *Response, r *Request) {
+		Handler: func(r *Request, w *Response) {
 			w.Header().Set("X-Params", fmt.Sprintf("%s", r.Params()))
 			w.Write([]byte(r.Route()))
 		},
@@ -61,7 +61,7 @@ var tRoutes = []Route{
 	{
 		Path:   "/users/:userId/blogs/:blogId",
 		Method: http.MethodGet,
-		Handler: func(w *Response, r *Request) {
+		Handler: func(r *Request, w *Response) {
 			w.Header().Set("X-Params", fmt.Sprintf("%s", r.Params()))
 			w.Write([]byte(r.Route()))
 		},
@@ -72,7 +72,7 @@ var tRoutes = []Route{
 			{
 				Path:   "/comments/:commentId",
 				Method: http.MethodGet,
-				Handler: func(w *Response, r *Request) {
+				Handler: func(r *Request, w *Response) {
 					w.Header().Set("X-Params", fmt.Sprintf("%s", r.Params()))
 					w.Write([]byte(r.Route()))
 				},
@@ -85,7 +85,7 @@ var tRoutes = []Route{
 			{
 				Path:   "/foo",
 				Method: http.MethodGet,
-				Handler: func(w *Response, r *Request) {
+				Handler: func(r *Request, w *Response) {
 					w.Header().Set("X-Params", fmt.Sprintf("%s", r.Params()))
 					w.Write([]byte(r.Route()))
 				},
@@ -98,7 +98,7 @@ var tRoutes = []Route{
 			{
 				Path:   "/bar",
 				Method: http.MethodGet,
-				Handler: func(w *Response, r *Request) {
+				Handler: func(r *Request, w *Response) {
 					w.Header().Set("X-Params", fmt.Sprintf("%s", r.Params()))
 					w.Write([]byte(r.Route()))
 				},

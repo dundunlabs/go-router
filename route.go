@@ -1,6 +1,6 @@
 package gorouter
 
-type HandlerFunc func(*Response, *Request)
+type HandlerFunc func(req *Request, res *Response)
 type MiddlewareFunc func(next HandlerFunc) HandlerFunc
 
 type Route struct {
